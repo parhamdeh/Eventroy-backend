@@ -1,0 +1,17 @@
+-r base.txt
+
+boto3-stubs==1.43.27
+django-redis==7.0.0
+django-stubs==6.0.5
+django-stubs-ext==6.0.5
+djangorestframework-stubs==3.17.0
+drf-spectacular==0.29.0
+Faker==40.23.0
+flake8==7.3.0
+ipdb==0.13.13
+ipython==9.14.1
+ipython_pygments_lexers==1.1.1
+mypy==2.1.0
+mypy_extensions==1.1.0
+pytest==9.0.3
+pytest-django==4.12.0
