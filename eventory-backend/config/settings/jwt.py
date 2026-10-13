@@ -17,6 +17,5 @@ SIMPLE_JWT = {
 
     "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
 }
-# AUTH_USER_MODEL = 'users.BaseUser'
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

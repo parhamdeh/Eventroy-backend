@@ -11,11 +11,15 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
+    {
+        'NAME': 'path.to.NumberValidator',
+    },
+    {
+        'NAME': 'path.to.LetterValidator',
+    },
+    {
+        'NAME': 'path.to.SpecialCharValidator',
+    },
 ]
 
-AUTH_PASSWORD_VALIDATORS = [
-    # ... existing validators
-    {'NAME': 'path.to.NumberValidator'},
-    {'NAME': 'path.to.LetterValidator'},
-    {'NAME': 'path.to.SpecialCharValidator'},
-]
+AUTH_USER_MODEL = 'users.User'

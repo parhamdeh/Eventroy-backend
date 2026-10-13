@@ -1,6 +1,6 @@
 from typing import Any
 
-from eventory-backend.common.types import DjangoModelType
+from eventory-backend.utils.types.models import DjangoModelType
 
 
 def model_update(
