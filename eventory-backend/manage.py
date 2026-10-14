@@ -4,8 +4,9 @@ import os
 import sys
 
 
-def main():
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.django.local')
+def main() -> None:
+    """Run administrative tasks using the local settings by default."""
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.django.local")
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
@@ -17,5 +18,5 @@ def main():
     execute_from_command_line(sys.argv)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

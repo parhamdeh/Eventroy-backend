@@ -1,1 +1,21 @@
--r requirements/local.txt
+-r requirements.txt
+
+# Test, typing and quality tooling (never installed in the production image)
+boto3-stubs==1.43.27
+botocore-stubs==1.43.14
+django-stubs==6.0.5
+django-stubs-ext==6.0.5
+djangorestframework-stubs==3.17.0
+Faker==40.23.0
+iniconfig==2.3.0
+pluggy==1.6.0
+Pygments==2.20.0
+pytest==9.0.3
+pytest-django==4.12.0
+types-awscrt==0.34.1
+types-PyYAML==6.0.12.20260518
+types-s3transfer==0.16.0
+factory-boy>=3.3,<4
+pytest-cov>=6,<8
+ruff>=0.12
+mypy>=1.17

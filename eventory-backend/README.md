@@ -1,36 +1,64 @@
-usage
-install cookiecutter
+# Eventory backend
 
-pip install cookiecutter
-setup the project
+Django + DRF event-ticketing backend (PostgreSQL, Redis, Celery/RabbitMQ, Elasticsearch).
 
-cookiecutter https://github.com/parhamdeh/cookiecutter-django.git
+## Local setup
 
-project setup
-1- compelete cookiecutter workflow (recommendation: leave project_slug empty) and go inside the project
+1. Create a virtualenv (Python 3.14, see `runtime.txt`; Django 6 needs 3.12+)
 
-cd eventory
-2- SetUp venv
+   ```bash
+   python3.14 -m venv venv
+   source venv/bin/activate
+   ```
 
-virtualenv -p python3.10 venv
-source venv/bin/activate
-3- install Dependencies
+2. Install dependencies (`requirements_dev.txt` already includes `requirements.txt`)
 
-pip install -r requirements_dev.txt
-pip install -r requirements.txt
-4- create your env
+   ```bash
+   pip install -r requirements_dev.txt
+   ```
 
-cp .env.example .env
-5- Create tables
+3. Create your environment file and replace every `change-me` placeholder
 
-python manage.py migrate
-6- spin off docker compose
+   ```bash
+   cp .env.example .env
+   ```
 
-docker compose -f docker-compose.dev.yml up -d
-7- run the project
+4. Start the infrastructure (database must be up **before** migrating)
 
-python manage.py runserver
+   ```bash
+   docker compose -f docker-compose.dev.yml up -d
+   ```
 
-8- run celery worker
+5. Create tables
 
-celery -A config worker -l info --pool=solo
+   ```bash
+   python manage.py migrate
+   ```
+
+6. Run the project
+
+   ```bash
+   python manage.py runserver
+   ```
+
+7. Run a Celery worker
+
+   ```bash
+   celery -A config worker -l info --pool=solo
+   ```
+
+## Settings modules
+
+| Purpose     | Module                       |
+|-------------|------------------------------|
+| Local dev   | `config.django.local`        |
+| Tests       | `config.django.test`         |
+| Production  | `config.django.production`   |
+
+## Quality checks
+
+```bash
+ruff check .
+mypy .
+pytest --cov
+```

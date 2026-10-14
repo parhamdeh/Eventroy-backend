@@ -6,7 +6,7 @@ import environ
 
 env = environ.Env()
 
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 
 
 def env_to_enum(enum_cls, value):

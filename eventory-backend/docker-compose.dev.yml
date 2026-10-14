@@ -1,39 +1,48 @@
-version: "3.9"
-
+# Local development infrastructure only. Django runs on the host (runserver).
+# All ports are bound to 127.0.0.1 so nothing is reachable from the network.
 services:
 
   db:
-    image: postgres:16-alpine
-    container_name: postgres_shop1
+    image: postgres:17-alpine
+    container_name: eventory_postgres_dev
     restart: unless-stopped
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     environment:
-      POSTGRES_DB: online_shop
-      POSTGRES_USER: parham
-      POSTGRES_PASSWORD: paripari85
+      POSTGRES_DB: ${POSTGRES_DB:?set POSTGRES_DB in .env}
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   pgadmin:
     image: dpage/pgadmin4
-    container_name: pgadmin4_container_shop1
+    container_name: eventory_pgadmin_dev
     restart: unless-stopped
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     ports:
-      - "5050:80"
+      - "127.0.0.1:5050:80"
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: pg_pass
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:?set PGADMIN_DEFAULT_EMAIL in .env}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:?set PGADMIN_DEFAULT_PASSWORD in .env}
 
   rabbitmq:
     image: rabbitmq:4.2-management-alpine
-    container_name: rabbitmq_shop1
+    container_name: eventory_rabbitmq_dev
     restart: unless-stopped
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "127.0.0.1:5672:5672"
+      - "127.0.0.1:15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:?set RABBITMQ_DEFAULT_USER in .env}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:?set RABBITMQ_DEFAULT_PASS in .env}
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 30s
@@ -42,52 +51,61 @@ services:
 
   redis:
     image: redis:8-alpine
-    container_name: redis_shop1
+    container_name: eventory_redis_dev
     restart: unless-stopped
-    command: redis-server --appendonly yes
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD:?set REDIS_PASSWORD in .env}"]
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
+    environment:
+      REDISCLI_AUTH: ${REDIS_PASSWORD}
     volumes:
       - redis-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis-insight:
     image: redis/redisinsight:latest
-    container_name: redis-insight_shop1
+    container_name: eventory_redis_insight_dev
     restart: unless-stopped
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
     ports:
-      - "5540:5540"
+      - "127.0.0.1:5540:5540"
 
   elasticsearch:
     image: elastic/elasticsearch:8.19.19
-    container_name: elasticsearch_shop1
+    container_name: eventory_elasticsearch_dev
     restart: unless-stopped
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
       - ES_JAVA_OPTS=-Xms512m -Xmx512m
     ports:
-      - "9200:9200"
-      - "9300:9300"
+      - "127.0.0.1:9200:9200"
     volumes:
       - elasticsearch-data:/usr/share/elasticsearch/data
     healthcheck:
-      test: ["CMD-SHELL", "curl -fs http://localhost:9200 >/dev/null || exit 1"]
+      test: ["CMD-SHELL", "curl -fs http://localhost:9200/_cluster/health >/dev/null || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
 
   kibana:
+    # Kibana must have the same version as Elasticsearch.
     image: kibana:9.4.4
-    container_name: kibana_shop1
+    container_name: eventory_kibana_dev
     restart: unless-stopped
     depends_on:
-      - elasticsearch
+      elasticsearch:
+        condition: service_healthy
     environment:
       ELASTICSEARCH_HOSTS: http://elasticsearch:9200
     ports:
-      - "5601:5601"
+      - "127.0.0.1:5601:5601"
 
 volumes:
   postgres-data:
