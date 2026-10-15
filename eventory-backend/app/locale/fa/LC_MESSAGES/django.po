@@ -1,0 +1,91 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: eventory\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-14 00:00+0000\n"
+"PO-Revision-Date: 2026-10-14 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Persian\n"
+"Language: fa\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "English"
+msgstr "انگلیسی"
+
+msgid "Persian"
+msgstr "فارسی"
+
+msgid "Arabic"
+msgstr "عربی"
+
+msgid "Success"
+msgstr "موفقیت‌آمیز"
+
+msgid "Error"
+msgstr "خطا"
+
+msgid "An error occurred."
+msgstr "خطایی رخ داده است."
+
+msgid "Bad request."
+msgstr "درخواست نامعتبر است."
+
+msgid "Validation error."
+msgstr "خطای اعتبارسنجی."
+
+msgid "Authentication required."
+msgstr "احراز هویت لازم است."
+
+msgid "Invalid credentials."
+msgstr "نام کاربری یا رمز عبور نادرست است."
+
+msgid "Invalid token."
+msgstr "توکن نامعتبر است."
+
+msgid "Token has expired."
+msgstr "توکن منقضی شده است."
+
+msgid "You do not have permission to perform this action."
+msgstr "شما اجازه انجام این کار را ندارید."
+
+msgid "Account is disabled."
+msgstr "حساب کاربری غیرفعال است."
+
+msgid "Account is not verified."
+msgstr "حساب کاربری تأیید نشده است."
+
+msgid "Not found."
+msgstr "موردی یافت نشد."
+
+msgid "Method not allowed."
+msgstr "این متد مجاز نیست."
+
+msgid "Resource already exists."
+msgstr "این مورد از قبل وجود دارد."
+
+msgid "This resource is no longer available."
+msgstr "این مورد دیگر در دسترس نیست."
+
+msgid "Request payload is too large."
+msgstr "حجم درخواست خیلی زیاد است."
+
+msgid "Unsupported media type."
+msgstr "نوع محتوا پشتیبانی نمی‌شود."
+
+msgid "Unprocessable entity."
+msgstr "داده‌ها قابل پردازش نیستند."
+
+msgid "Too many requests. Please try again later."
+msgstr "تعداد درخواست‌ها بیش از حد است. لطفاً بعداً تلاش کنید."
+
+msgid "Internal server error."
+msgstr "خطای داخلی سرور."
+
+msgid "Service unavailable."
+msgstr "سرویس در دسترس نیست."
+
+msgid "A server error occurred."
+msgstr "خطای سرور رخ داد."

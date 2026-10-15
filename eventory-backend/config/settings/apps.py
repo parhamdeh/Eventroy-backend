@@ -1,8 +1,8 @@
 
 LOCAL_APPS = [
-    'eventory-backend.core.apps.CoreConfig',
-    'eventory-backend.common.apps.CommonConfig',
-    'eventory-backend.users.apps.UsersConfig',
+    'app.core.apps.CoreConfig',
+    'app.common.apps.CommonConfig',
+    'app.users.apps.UsersConfig',
 ]
 
 THIRD_PARTY_APPS = [
