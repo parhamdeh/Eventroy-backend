@@ -88,6 +88,12 @@ class User(AbstractBaseUser, PermissionsMixin):
         help_text=_("User score. Must be an integer between 0 and 5."),
     )
 
+    is_vip = models.BooleanField(
+        default=False,
+        verbose_name=_("VIP status"),
+        help_text=_("Whether this user has VIP membership."),
+    )
+
     is_active = models.BooleanField(
         default=True,
         verbose_name=_("Active"),
