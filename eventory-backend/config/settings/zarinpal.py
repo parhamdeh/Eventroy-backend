@@ -3,7 +3,7 @@ from config.env import env
 DEFAULT_PROTOCOL = "http"
 
 SANDBOX = True
-MERCHANT = env("MERCHANT")
+MERCHANT = env("MERCHANT", default="")
 ZP_API_REQUEST = "https://sandbox.zarinpal.com/pg/v4/payment/request.json"
 ZP_API_VERIFY = "https://sandbox.zarinpal.com/pg/v4/payment/verify.json"
 ZP_API_STARTPAY = "https://sandbox.zarinpal.com/pg/StartPay/"

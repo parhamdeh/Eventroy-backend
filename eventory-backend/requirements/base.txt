@@ -17,6 +17,7 @@ django_celery_results==2.6.0
 djangorestframework==3.17.1
 djangorestframework-stubs==3.17.0
 djangorestframework_simplejwt==5.5.1
+google-auth==2.41.1
 drf-spectacular==0.29.0
 Faker==40.23.0
 pytest==9.0.3

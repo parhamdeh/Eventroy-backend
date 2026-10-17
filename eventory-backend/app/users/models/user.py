@@ -94,6 +94,26 @@ class User(AbstractBaseUser, PermissionsMixin):
         help_text=_("Whether this user has VIP membership."),
     )
 
+    is_phone_verified = models.BooleanField(
+        default=False,
+        verbose_name=_("Phone verified"),
+        help_text=_("Whether the phone number has been verified via OTP."),
+    )
+
+    is_email_verified = models.BooleanField(
+        default=False,
+        verbose_name=_("Email verified"),
+        help_text=_("Whether the email address has been verified via OTP or Google."),
+    )
+
+    google_sub = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+        verbose_name=_("Google subject"),
+        help_text=_("Stable Google account identifier (sub). Empty when unused."),
+    )
+
     is_active = models.BooleanField(
         default=True,
         verbose_name=_("Active"),
@@ -144,6 +164,11 @@ class User(AbstractBaseUser, PermissionsMixin):
                 condition=~Q(email=""),
                 name="users_user_email_ci_uniq",
             ),
+            models.UniqueConstraint(
+                "google_sub",
+                condition=~Q(google_sub=""),
+                name="users_user_google_sub_uniq",
+            ),
             models.CheckConstraint(
                 condition=Q(points__gte=0) & Q(points__lte=5),
                 name="users_user_points_0_5",
@@ -158,6 +183,10 @@ class User(AbstractBaseUser, PermissionsMixin):
             models.Index(
                 fields=["is_active", "is_staff"],
                 name="users_user_status_idx",
+            ),
+            models.Index(
+                fields=["is_vip"],
+                name="users_user_is_vip_idx",
             ),
         ]
 

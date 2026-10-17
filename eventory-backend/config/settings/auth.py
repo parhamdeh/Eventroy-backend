@@ -12,13 +12,13 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
     {
-        'NAME': 'path.to.NumberValidator',
+        "NAME": "app.users.validators.NumberValidator",
     },
     {
-        'NAME': 'path.to.LetterValidator',
+        "NAME": "app.users.validators.LetterValidator",
     },
     {
-        'NAME': 'path.to.SpecialCharValidator',
+        "NAME": "app.users.validators.SpecialCharValidator",
     },
 ]
 

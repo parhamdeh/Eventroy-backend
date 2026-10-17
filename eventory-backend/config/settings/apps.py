@@ -1,18 +1,21 @@
 
 LOCAL_APPS = [
-    'app.core.apps.CoreConfig',
-    'app.common.apps.CommonConfig',
-    'app.users.apps.UsersConfig',
+    "app.core.apps.CoreConfig",
+    "app.common.apps.CommonConfig",
+    "app.users.apps.UsersConfig",
+    "app.sms_gateway.apps.SmsGatewayConfig",
 ]
 
 THIRD_PARTY_APPS = [
-    'rest_framework',
-    'django_filters',
-    'django_celery_results',
-    'django_celery_beat',
-    'corsheaders',
-    'drf_spectacular',
-    'django_extensions',
+    "rest_framework",
+    "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",
+    "django_filters",
+    "django_celery_results",
+    "django_celery_beat",
+    "corsheaders",
+    "drf_spectacular",
+    "django_extensions",
 ]
 
 INSTALLED_APPS = [

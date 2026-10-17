@@ -1,8 +1,25 @@
-from rest_framework.throttling import AnonRateThrottle
+from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 
 
-class AdminRequestThrottle(AnonRateThrottle):
-    rate = "10/min"
+class AdminRequestThrottle(UserRateThrottle):
+    """Throttle for authenticated administrator endpoints."""
 
-class UserRequestThrottle(AnonRateThrottle):
-    rate = "6/min"
+    scope = "admin"
+
+
+class UserRequestThrottle(UserRateThrottle):
+    """Throttle for authenticated user endpoints."""
+
+    scope = "user"
+
+
+class AuthRateThrottle(AnonRateThrottle):
+    """IP-based throttle for login and token refresh."""
+
+    scope = "auth"
+
+
+class OTPRequestThrottle(AnonRateThrottle):
+    """IP-based throttle for OTP issuance endpoints."""
+
+    scope = "otp"

@@ -21,3 +21,5 @@ from config.settings.env import *
 from config.settings.base import *
 from config.settings.zarinpal import *
 from config.settings.kavenegar import *
+from config.settings.otp import *
+from config.settings.google import *

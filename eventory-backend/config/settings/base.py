@@ -13,4 +13,4 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 ROOT_URLCONF = "config.urls"
 WSGI_APPLICATION = "config.wsgi.application"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-APPLICATION_DOMAIN = env.str("APPLICATION_DOMAIN")
+APPLICATION_DOMAIN = env.str("APPLICATION_DOMAIN", default="localhost")
