@@ -6,6 +6,7 @@ from typing import Any
 from django.contrib.auth.base_user import BaseUserManager
 from django.utils.translation import gettext_lazy as _
 
+from app.users.identifiers import normalize_phone
 
 class UserManager(BaseUserManager):
     """
@@ -93,9 +94,13 @@ class UserManager(BaseUserManager):
         Raises:
             ValueError: If the required administrative flags are invalid.
         """
+        phone = normalize_phone(value=phone)
+
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
         extra_fields.setdefault("is_active", True)
+        extra_fields.setdefault("is_phone_verified", True)
+        extra_fields.setdefault("is_email_verified", True)
 
         if extra_fields.get("is_staff") is not True:
             raise ValueError(_("A superuser must have is_staff=True."))

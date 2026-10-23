@@ -47,7 +47,6 @@ _GENERIC_LOGIN_ERROR = InvalidCredentialsError
 
 def _queue_otp(*, channel: str, identifier: str, delivery_key: str, purpose: str) -> None:
     """Queue OTP delivery without putting the code in the Celery signature."""
-
     template = OTP_SMS_TEMPLATE if channel == "phone" else OTP_EMAIL_TEMPLATE
     deliver_message.delay(
         channel=channel,
@@ -184,6 +183,7 @@ def login_with_password(*, channel: str, identifier: str, password: str) -> dict
         raise _GENERIC_LOGIN_ERROR() from None
 
     user = user_get_for_login(channel=channel, identifier=identifier)
+    print("_______________________________", user)
     if user is None or not user.is_active:
         raise _GENERIC_LOGIN_ERROR()
 

@@ -41,7 +41,7 @@ def deliver_message(
     OTP plaintext must not be passed here. Callers store a short-lived delivery
     payload in cache and put the cache key in `context['delivery_key']`.
     """
-
+    print("________________________________________", payload_context, template)
     if idempotency_key:
         marker = cache.get(idempotency_key)
         if marker == "sent":
@@ -58,6 +58,7 @@ def deliver_message(
         payload_context["code"] = code
 
     try:
+        print("________________________________________", payload_context, template)
         MessagingService().send(
             channel=channel,
             recipient=recipient,
@@ -65,6 +66,7 @@ def deliver_message(
             context=payload_context,
             subject=subject,
         )
+        print(payload_context)
     except PermanentDeliveryError:
         logger.warning("Permanent delivery failure channel=%s template=%s", channel, template)
         raise

@@ -26,7 +26,7 @@ class EmailSender(MessageSender):
             raise PermanentDeliveryError("Email recipient is invalid.")
 
         subject, body = render_email(payload.template, payload.context)
-        from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "webmaster@localhost")
+        from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "parhamdehghan1385@gmail.com")
 
         try:
             sent = send_mail(
