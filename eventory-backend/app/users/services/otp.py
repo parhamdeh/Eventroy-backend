@@ -72,9 +72,9 @@ def issue_otp(
     Enforces a resend cooldown. Does not log or return the OTP.
     """
 
-    ttl = int(getattr(settings, "OTP_TTL_SECONDS", 120))
-    cooldown = int(getattr(settings, "OTP_RESEND_COOLDOWN_SECONDS", 60))
-    delivery_ttl = int(getattr(settings, "OTP_DELIVERY_TTL_SECONDS", 60))
+    ttl = int(getattr(settings, "OTP_TTL_SECONDS", 500))
+    cooldown = int(getattr(settings, "OTP_RESEND_COOLDOWN_SECONDS", 500))
+    delivery_ttl = int(getattr(settings, "OTP_DELIVERY_TTL_SECONDS", 500))
 
     cooldown_key = _cooldown_key(purpose=purpose, channel=channel, identifier=identifier)
     try:

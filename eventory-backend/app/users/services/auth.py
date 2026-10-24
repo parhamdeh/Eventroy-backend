@@ -38,6 +38,7 @@ from app.users.services.otp import (
     verify_otp,
 )
 from app.users.services.tokens import blacklist_user_refresh_tokens, issue_tokens_for_user
+from app.users.services.users import create_user
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +109,7 @@ def register_user(
         "email": email,
         "username": username.strip(),
         "last_name": last_name.strip(),
-        "password": make_password(password),
+        "password":password,
         "birth_date": birth_date.isoformat() if birth_date else None,
         "channel": channel,
     }
@@ -148,21 +149,23 @@ def verify_registration(*, channel: str, identifier: str, otp: str) -> dict[str,
 
         birth_raw = payload.get("birth_date")
         birth_date = date.fromisoformat(birth_raw) if birth_raw else None
-        user = User(
-            phone=payload["phone"],
-            username=payload["username"],
-            last_name=payload["last_name"],
-            email=email,
-            birth_date=birth_date,
-            is_active=True,
-            is_staff=False,
-            is_superuser=False,
-            is_vip=False,
-            is_phone_verified=channel == "phone",
-            is_email_verified=channel == "email",
+        data = {
+            "phone" : payload["phone"],
+            "username": payload["username"],
+            "last_name": payload["last_name"],
+            "email": email,
+            "birth_date" : birth_date,
+            "is_active" : True,
+            "is_staff" : False,
+            "is_superuser" : False,
+            "is_vip" : False,
+            "is_phone_verified" : channel == "phone",
+            "is_email_verified": channel == "email",
+            "password" : payload["password"]
+        }
+        user = create_user(
+            data=data
         )
-        user.password = payload["password"]
-        user.save()
 
     logger.info("User registered id=%s channel=%s", user.pk, channel)
     return _auth_payload(user)
