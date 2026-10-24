@@ -101,6 +101,11 @@ def issue_otp(
     try:
         cache.set(key, record, timeout=ttl)
         cache.set(delivery, otp, timeout=delivery_ttl)
+        stored_record = cache.get(key)
+        stored_delivery = cache.get(delivery)
+
+        if stored_record is None or stored_delivery is None:
+            raise RuntimeError("OTP cache write verification failed.")
     except Exception as exc:
         cache.delete(cooldown_key)
         logger.warning("OTP cache unavailable while storing a code")
