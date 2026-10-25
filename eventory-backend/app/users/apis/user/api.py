@@ -19,7 +19,7 @@ from app.users.apis.user.serializer import (
 )
 from app.users.permissions import IsStaffUser, IsSuperUser
 from app.users.selectors.users import user_get_by_id, user_list
-from app.users.services.admin import create_staff_admin, set_user_vip
+from app.users.services.users import create_superuser, set_user_vip
 from app.core.exceptions import NotFoundError
 from django.utils.translation import gettext as _
 
@@ -32,7 +32,7 @@ class ListCreateAdminView(ApiAuthMixin, APIView):
 
     throttle_classes = (AdminRequestThrottle,)
 
-    def get_permissions(self):  # type: ignore[override]
+    def get_permissions(self):  
         if self.request.method == "POST":
             return [IsSuperUser()]
         return [IsStaffUser()]
@@ -70,7 +70,7 @@ class ListCreateAdminView(ApiAuthMixin, APIView):
     def post(self, request: Request) -> Response:
         serializer = AdminCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = create_staff_admin(**serializer.validated_data)
+        user = create_superuser(data=serializer.validated_data)
         return Response(AdminUserSerializer(user).data, status=status.HTTP_201_CREATED)
 
 
