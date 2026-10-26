@@ -4,6 +4,7 @@ LOCAL_APPS = [
     "app.common.apps.CommonConfig",
     "app.users.apps.UsersConfig",
     "app.sms_gateway.apps.SmsGatewayConfig",
+    "app.event.apps.EventConfig",
 ]
 
 THIRD_PARTY_APPS = [

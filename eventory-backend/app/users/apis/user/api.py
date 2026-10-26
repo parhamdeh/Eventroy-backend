@@ -44,6 +44,8 @@ class ListCreateAdminView(ApiAuthMixin, APIView):
         description="Paginated user listing with exact filters on id, phone, email, and VIP.",
     )
     def get(self, request: Request) -> Response:
+        # add search and filter for users
+        # need to refactor!
         filters = AdminUserFilterSerializer(data=request.query_params)
         filters.is_valid(raise_exception=True)
         data = filters.validated_data
