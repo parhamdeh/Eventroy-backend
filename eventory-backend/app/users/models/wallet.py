@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from django.core.validators import RegexValidator
 from django.utils.translation import gettext_lazy as _
 
 from app.common.models import BaseModel
@@ -31,10 +32,14 @@ class Wallet(BaseModel):
         max_length=16,
         blank=True,
         null=True,
+        validators=[
+            RegexValidator(
+                regex=r"^\d{16}$",
+                message=_("The card number must contain exactly 16 digits."),
+            )
+        ],
         verbose_name=_("card number"),
-        help_text=_(
-            "The user's bank card number. This field is optional."
-        ),
+        help_text=_("Optional bank card number."),
     )
 
     class Meta:

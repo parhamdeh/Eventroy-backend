@@ -5,6 +5,7 @@ LOCAL_APPS = [
     "app.users.apps.UsersConfig",
     "app.sms_gateway.apps.SmsGatewayConfig",
     "app.event.apps.EventConfig",
+    "app.payment_gateway.apps.PaymentGatewayConfig",
 ]
 
 THIRD_PARTY_APPS = [
