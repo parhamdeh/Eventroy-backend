@@ -1,0 +1,827 @@
+openapi: 3.0.3
+info:
+  title: eventory API
+  version: 1.0.0
+paths:
+  /api/admin/users/:
+    get:
+      operationId: admin_users_list
+      description: Paginated user listing with exact filters on id, phone, email,
+        and VIP.
+      parameters:
+      - in: query
+        name: email
+        schema:
+          type: string
+      - in: query
+        name: id
+        schema:
+          type: integer
+          minimum: 1
+      - in: query
+        name: is_vip
+        schema:
+          type: boolean
+          nullable: true
+      - in: query
+        name: phone
+        schema:
+          type: string
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AdminUser'
+          description: ''
+    post:
+      operationId: admin_users_create
+      description: Create a staff administrator. Superuser and VIP cannot be granted.
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AdminCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AdminCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUser'
+          description: ''
+  /api/admin/users/{user_id}/:
+    get:
+      operationId: admin_users_retrieve
+      description: Retrieve a single user for staff administrators.
+      parameters:
+      - in: path
+        name: user_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUser'
+          description: ''
+  /api/admin/users/{user_id}/vip/:
+    patch:
+      operationId: admin_users_vip_partial_update
+      description: Set is_vip for a target user. Public profile APIs never accept
+        this field.
+      parameters:
+      - in: path
+        name: user_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedVipUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedVipUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedVipUpdateRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUser'
+          description: ''
+  /api/auth/google/:
+    post:
+      operationId: auth_google_create
+      description: The frontend obtains a Google ID token (GIS). This API verifies
+        iss/aud/exp/signature with google-auth and uses Google `sub` as identity.
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GoogleAuthRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/GoogleAuthRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/GoogleAuthRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokenResponse'
+          description: ''
+  /api/auth/login/:
+    post:
+      operationId: auth_login_create
+      description: Authenticate with Django's password hasher. Failures share one
+        error.
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokenResponse'
+          description: ''
+  /api/auth/me/:
+    get:
+      operationId: auth_me_retrieve
+      description: Return the authenticated user's profile.
+      summary: Retrieve current user profile
+      tags:
+      - Profile
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+          description: ''
+    patch:
+      operationId: auth_me_partial_update
+      description: Partially update the authenticated user's profile.
+      summary: Update current user profile
+      tags:
+      - Profile
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUserProfileRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUserProfileRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUserProfileRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+          description: ''
+  /api/auth/password-reset/:
+    post:
+      operationId: auth_password_reset_create
+      description: Sends a reset OTP only to a verified registered identifier.
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequestRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PasswordResetRequest'
+          description: ''
+  /api/auth/password-reset/confirm/:
+    post:
+      operationId: auth_password_reset_confirm_create
+      description: Single-use OTP. Outstanding refresh tokens are blacklisted.
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetConfirmRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PasswordResetConfirmRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PasswordResetConfirmRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PasswordResetRequest'
+          description: ''
+  /api/auth/signup/:
+    post:
+      operationId: auth_signup_create
+      description: Validate registration data, store a pending profile in cache, and
+        queue an OTP on the selected channel. The user row is created only after OTP
+        verification.
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignUpRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SignUpRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SignUpRequest'
+        required: true
+      responses:
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PendingOtpResponse'
+          description: ''
+  /api/auth/token/refresh/:
+    post:
+      operationId: auth_token_refresh_create
+      description: Rejects expired, invalid, and blacklisted refresh tokens.
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequestRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefreshRequest'
+          description: ''
+  /api/auth/verify/:
+    post:
+      operationId: auth_verify_create
+      description: Consume a single-use signup OTP and issue access/refresh tokens.
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OTPVerifyRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OTPVerifyRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OTPVerifyRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokenResponse'
+          description: ''
+components:
+  schemas:
+    AdminCreateRequest:
+      type: object
+      description: Input for creating a staff administrator. Superuser cannot be assigned.
+      properties:
+        phone:
+          type: string
+          minLength: 1
+          maxLength: 20
+        email:
+          type: string
+          format: email
+          default: ''
+        username:
+          type: string
+          minLength: 1
+          maxLength: 150
+        last_name:
+          type: string
+          minLength: 1
+          maxLength: 150
+        password:
+          type: string
+          writeOnly: true
+          minLength: 8
+          maxLength: 128
+      required:
+      - last_name
+      - password
+      - phone
+      - username
+    AdminUser:
+      type: object
+      description: Fields safe to return to an administrator. Never includes password
+        hashes.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        phone:
+          type: string
+          readOnly: true
+          title: Phone number
+          description: Required unique phone number used for authentication.
+        username:
+          type: string
+          readOnly: true
+          title: Name
+          description: Required display name. It does not need to be unique.
+        last_name:
+          type: string
+          readOnly: true
+          description: Required family name of the user.
+        email:
+          type: string
+          format: email
+          readOnly: true
+          title: Email address
+          description: Optional email address. Non-empty email addresses must be unique.
+        birth_date:
+          type: string
+          format: date
+          readOnly: true
+          nullable: true
+          title: Date of birth
+          description: Optional date of birth.
+        points:
+          type: integer
+          readOnly: true
+          description: User score. Must be an integer between 0 and 5.
+        is_vip:
+          type: boolean
+          readOnly: true
+          title: VIP status
+          description: Whether this user has VIP membership.
+        is_staff:
+          type: boolean
+          readOnly: true
+          title: Staff status
+          description: Whether this user can access the Django admin site.
+        is_superuser:
+          type: boolean
+          readOnly: true
+          title: Superuser status
+          description: Designates that this user has all permissions without explicitly
+            assigning them.
+        is_active:
+          type: boolean
+          readOnly: true
+          title: Active
+          description: Whether this account is allowed to authenticate.
+        is_phone_verified:
+          type: boolean
+          readOnly: true
+          title: Phone verified
+          description: Whether the phone number has been verified via OTP.
+        is_email_verified:
+          type: boolean
+          readOnly: true
+          title: Email verified
+          description: Whether the email address has been verified via OTP or Google.
+        date_joined:
+          type: string
+          format: date-time
+          readOnly: true
+          description: Date and time when the account was created.
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          description: Timestamp when this record was created.
+      required:
+      - birth_date
+      - created_at
+      - date_joined
+      - email
+      - id
+      - is_active
+      - is_email_verified
+      - is_phone_verified
+      - is_staff
+      - is_superuser
+      - is_vip
+      - last_name
+      - phone
+      - points
+      - username
+    AuthTokenResponse:
+      type: object
+      description: Access/refresh pair plus public user data.
+      properties:
+        access:
+          type: string
+        refresh:
+          type: string
+        user:
+          $ref: '#/components/schemas/UserPublic'
+      required:
+      - access
+      - refresh
+      - user
+    ChannelEnum:
+      enum:
+      - phone
+      - email
+      type: string
+      description: |-
+        * `phone` - phone
+        * `email` - email
+    GoogleAuthRequest:
+      type: object
+      description: Google ID token submitted by the frontend.
+      properties:
+        id_token:
+          type: string
+          minLength: 1
+      required:
+      - id_token
+    LoginRequest:
+      type: object
+      description: Password login using phone or email.
+      properties:
+        channel:
+          $ref: '#/components/schemas/ChannelEnum'
+        identifier:
+          type: string
+          minLength: 1
+          maxLength: 254
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+          maxLength: 128
+      required:
+      - channel
+      - identifier
+      - password
+    OTPVerifyRequest:
+      type: object
+      description: OTP confirmation for signup.
+      properties:
+        channel:
+          $ref: '#/components/schemas/ChannelEnum'
+        identifier:
+          type: string
+          minLength: 1
+          maxLength: 254
+        otp:
+          type: string
+          minLength: 6
+          maxLength: 6
+      required:
+      - channel
+      - identifier
+      - otp
+    PasswordResetConfirmRequest:
+      type: object
+      description: Confirm a password-reset OTP and set a new password.
+      properties:
+        channel:
+          $ref: '#/components/schemas/ChannelEnum'
+        identifier:
+          type: string
+          minLength: 1
+          maxLength: 254
+        otp:
+          type: string
+          minLength: 6
+          maxLength: 6
+        new_password:
+          type: string
+          writeOnly: true
+          minLength: 8
+          maxLength: 128
+      required:
+      - channel
+      - identifier
+      - new_password
+      - otp
+    PasswordResetRequest:
+      type: object
+      description: Request a password-reset OTP on a verified identifier.
+      properties:
+        channel:
+          $ref: '#/components/schemas/ChannelEnum'
+        identifier:
+          type: string
+          maxLength: 254
+      required:
+      - channel
+      - identifier
+    PasswordResetRequestRequest:
+      type: object
+      description: Request a password-reset OTP on a verified identifier.
+      properties:
+        channel:
+          $ref: '#/components/schemas/ChannelEnum'
+        identifier:
+          type: string
+          minLength: 1
+          maxLength: 254
+      required:
+      - channel
+      - identifier
+    PatchedUserProfileRequest:
+      type: object
+      description: Serialize editable profile information for the current user.
+      properties:
+        username:
+          type: string
+          minLength: 1
+          title: Name
+          description: Required display name. It does not need to be unique.
+          maxLength: 150
+        last_name:
+          type: string
+          minLength: 1
+          description: Required family name of the user.
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          title: Email address
+          description: Optional email address. Non-empty email addresses must be unique.
+          maxLength: 254
+        profile_photo:
+          type: string
+          format: binary
+          description: Optional profile picture.
+        birth_date:
+          type: string
+          format: date
+          nullable: true
+          title: Date of birth
+          description: Optional date of birth.
+    PatchedVipUpdateRequest:
+      type: object
+      description: Toggle VIP status for a target user.
+      properties:
+        is_vip:
+          type: boolean
+    PendingOtpResponse:
+      type: object
+      description: Signup / OTP-issued acknowledgement.
+      properties:
+        channel:
+          type: string
+        identifier:
+          type: string
+        expires_in:
+          type: integer
+      required:
+      - channel
+      - expires_in
+      - identifier
+    SignUpRequest:
+      type: object
+      description: Registration payload. Privileged fields are not writable.
+      properties:
+        channel:
+          $ref: '#/components/schemas/ChannelEnum'
+        phone:
+          type: string
+          minLength: 1
+          maxLength: 20
+        email:
+          type: string
+          format: email
+          default: ''
+        username:
+          type: string
+          minLength: 1
+          maxLength: 150
+        last_name:
+          type: string
+          minLength: 1
+          maxLength: 150
+        password:
+          type: string
+          writeOnly: true
+          minLength: 8
+          maxLength: 128
+        birth_date:
+          type: string
+          format: date
+          nullable: true
+      required:
+      - channel
+      - last_name
+      - password
+      - phone
+      - username
+    TokenRefreshRequest:
+      type: object
+      description: Refresh-token rotation request.
+      properties:
+        refresh:
+          type: string
+      required:
+      - refresh
+    TokenRefreshRequestRequest:
+      type: object
+      description: Refresh-token rotation request.
+      properties:
+        refresh:
+          type: string
+          minLength: 1
+      required:
+      - refresh
+    UserProfile:
+      type: object
+      description: Serialize editable profile information for the current user.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          title: Name
+          description: Required display name. It does not need to be unique.
+          maxLength: 150
+        last_name:
+          type: string
+          description: Required family name of the user.
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          title: Email address
+          description: Optional email address. Non-empty email addresses must be unique.
+          maxLength: 254
+        phone:
+          type: string
+          readOnly: true
+          title: Phone number
+          description: Required unique phone number used for authentication.
+        profile_photo:
+          type: string
+          format: uri
+          description: Optional profile picture.
+        birth_date:
+          type: string
+          format: date
+          nullable: true
+          title: Date of birth
+          description: Optional date of birth.
+        age:
+          type: integer
+          nullable: true
+          description: Return the user's calculated age.
+          readOnly: true
+        points:
+          type: integer
+          readOnly: true
+          description: User score. Must be an integer between 0 and 5.
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          description: Timestamp when this record was created.
+      required:
+      - age
+      - created_at
+      - id
+      - last_name
+      - phone
+      - points
+      - username
+    UserPublic:
+      type: object
+      description: Safe user representation returned after authentication.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        phone:
+          type: string
+          readOnly: true
+          title: Phone number
+          description: Required unique phone number used for authentication.
+        username:
+          type: string
+          readOnly: true
+          title: Name
+          description: Required display name. It does not need to be unique.
+        last_name:
+          type: string
+          readOnly: true
+          description: Required family name of the user.
+        email:
+          type: string
+          format: email
+          readOnly: true
+          title: Email address
+          description: Optional email address. Non-empty email addresses must be unique.
+        birth_date:
+          type: string
+          format: date
+          readOnly: true
+          nullable: true
+          title: Date of birth
+          description: Optional date of birth.
+        points:
+          type: integer
+          readOnly: true
+          description: User score. Must be an integer between 0 and 5.
+        is_vip:
+          type: boolean
+          readOnly: true
+          title: VIP status
+          description: Whether this user has VIP membership.
+        is_phone_verified:
+          type: boolean
+          readOnly: true
+          title: Phone verified
+          description: Whether the phone number has been verified via OTP.
+        is_email_verified:
+          type: boolean
+          readOnly: true
+          title: Email verified
+          description: Whether the email address has been verified via OTP or Google.
+        date_joined:
+          type: string
+          format: date-time
+          readOnly: true
+          description: Date and time when the account was created.
+      required:
+      - birth_date
+      - date_joined
+      - email
+      - id
+      - is_email_verified
+      - is_phone_verified
+      - is_vip
+      - last_name
+      - phone
+      - points
+      - username
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

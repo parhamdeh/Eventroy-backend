@@ -9,6 +9,7 @@ from app.users.apis.auth.login import (
 from app.users.apis.auth.refresh import TokenRefreshApi
 from app.users.apis.auth.signup import SignUpApi, VerifyRegistrationApi
 from app.users.apis.user.api import AdminUserDetailView, AdminUserVipView, ListCreateAdminView
+from app.users.apis.profile.profile_api import UserProfileView
 
 urlpatterns = [
     path("auth/signup/", SignUpApi.as_view(), name="auth-signup"),
@@ -20,6 +21,9 @@ urlpatterns = [
         PasswordResetConfirmApi.as_view(),
         name="auth-password-reset-confirm",
     ),
+
+    path("me/", UserProfileView.as_view(), name="profile"),
+
     path("auth/token/refresh/", TokenRefreshApi.as_view(), name="auth-token-refresh"),
     path("auth/google/", GoogleAuthApi.as_view(), name="auth-google"),
     path("admin/users/", ListCreateAdminView.as_view(), name="admin-users"),
