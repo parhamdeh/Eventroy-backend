@@ -1,155 +1,113 @@
-
-from typing import Any
+import logging
+import re
 
 import requests
 from django.conf import settings
 
-from app.core.exceptions import ApplicationError
-from app.payment_gateway.exception import GatewayError
-from app.payment_gateway.interface import BaseGateway
+from app.payment_gateway.exception import GatewayRejected, GatewayUnavailable
+from app.payment_gateway.gateways.base import (
+    BaseGateway,
+    GatewayRequestResult,
+    GatewayVerifyResult,
+)
+
+logger = logging.getLogger(__name__)
+
+_HEADERS = {"accept": "application/json", "content-type": "application/json"}
+_MOBILE_RE = re.compile(r"^09\d{9}$")
 
 
-class ZarinPalGateway(BaseGateway):
-    """
-    Communicate with the ZarinPal payment API.
+def _normalize_mobile(raw) -> str | None:
+    """Zarinpal rejects badly formatted mobiles, so send 09xxxxxxxxx or nothing."""
+    if not raw:
+        return None
+    digits = re.sub(r"\D", "", str(raw))
+    if digits.startswith("98") and len(digits) == 12:
+        digits = "0" + digits[2:]
+    elif digits.startswith("9") and len(digits) == 10:
+        digits = "0" + digits
+    return digits if _MOBILE_RE.match(digits) else None
 
-    Internal payment amounts must use the application's agreed
-    monetary unit. Conversion to the gateway's required unit belongs
-    at this integration boundary.
-    """
 
-    def __init__(self) -> None:
-        self.merchant_id = settings.ZARINPAL_MERCHANT_ID
-        self.request_url = settings.ZARINPAL_REQUEST_URL
-        self.verify_url = settings.ZARINPAL_VERIFY_URL
-        self.start_pay_url = settings.ZARINPAL_START_PAY_URL
-        self.callback_url = settings.ZARINPAL_CALLBACK_URL
-        self.timeout = (3.05, 10)
+class ZarinpalGateway(BaseGateway):
+    name = "zarinpal"
 
-    @staticmethod
-    def _post_json(
-        url: str,
-        payload: dict[str, Any],
-    ) -> dict[str, Any]:
-        """Send a JSON request and validate the response format."""
+    def _post(self, url: str, payload: dict) -> tuple[dict, dict]:
+        """POST and return (data, errors) as dicts. Never returns lists/None."""
         try:
             response = requests.post(
                 url,
                 json=payload,
-                headers={
-                    "Accept": "application/json",
-                    "Content-Type": "application/json",
-                },
-                timeout=(3.05, 10),
+                headers=_HEADERS,
+                timeout=settings.ZARINPAL_TIMEOUT,
             )
-            response.raise_for_status()
-            result = response.json()
-
-        except requests.Timeout as exc:
-            raise GatewayError(
-                "Payment gateway timed out."
-            ) from exc
-
         except requests.RequestException as exc:
-            raise GatewayError(
-                "Could not communicate with the payment gateway."
-            ) from exc
+            logger.warning("Zarinpal unreachable: %s", exc)
+            raise GatewayUnavailable("Payment gateway is unreachable.") from exc
 
+        if response.status_code >= 500:
+            logger.warning("Zarinpal 5xx: %s", response.status_code)
+            raise GatewayUnavailable("Payment gateway is unavailable.")
+
+        try:
+            body = response.json()
         except ValueError as exc:
-            raise GatewayError(
-                "Payment gateway returned an invalid response."
-            ) from exc
+            raise GatewayUnavailable("Invalid response from gateway.") from exc
 
-        if not isinstance(result, dict):
-            raise GatewayError(
-                "Payment gateway returned an unexpected response."
-            )
+        if not isinstance(body, dict):
+            raise GatewayUnavailable("Invalid response from gateway.")
 
-        return result
+        # On failure Zarinpal sends `"data": []` (a list!) and `errors` as a dict.
+        data = body.get("data")
+        errors = body.get("errors")
+        return (
+            data if isinstance(data, dict) else {},
+            errors if isinstance(errors, dict) else {},
+        )
 
-    @staticmethod
-    def _validate_amount(amount: Any) -> int:
-        """Require a positive integer amount."""
-        if isinstance(amount, bool) or not isinstance(amount, int):
-            raise ApplicationError("Amount must be an integer.")
-
-        if amount <= 0:
-            raise ApplicationError("Amount must be greater than zero.")
-
-        return amount
-
-    def request(self, payment: dict[str, Any]) -> dict[str, str]:
-        """Create a payment request with ZarinPal."""
-        amount = self._validate_amount(payment.get("amount"))
-
+    def request(self, *, amount, description, callback_url, mobile=None):
         payload = {
-            "merchant_id": self.merchant_id,
+            "merchant_id": settings.ZARINPAL_MERCHANT_ID,
             "amount": amount,
-            "description": payment.get("description", "Wallet charge"),
-            "callback_url": self.callback_url,
-            "metadata": {
-                "mobile": str(payment.get("phone") or ""),
-            },
+            # Our amounts are tomans. Without this Zarinpal assumes rials
+            # and the user would be charged 10x less. Confirm in sandbox.
+            "currency": "IRT",
+            "description": description,
+            "callback_url": callback_url,
         }
+        mobile = _normalize_mobile(mobile)
+        if mobile:
+            payload["metadata"] = {"mobile": mobile}
 
-        result = self._post_json(self.request_url, payload)
-        data = result.get("data")
+        data, errors = self._post(settings.ZARINPAL_REQUEST_URL, payload)
 
-        if not isinstance(data, dict):
-            raise GatewayError("Invalid payment request response.")
+        if data.get("code") != 100 or not data.get("authority"):
+            code = errors.get("code") or data.get("code")
+            logger.error("Zarinpal request rejected: code=%s errors=%s", code, errors)
+            raise GatewayRejected("Gateway refused the payment request.", code=code)
 
-        if data.get("code") != 100:
-            raise GatewayError(
-                result.get("errors") or data
-            )
+        authority = data["authority"]
+        return GatewayRequestResult(
+            authority=authority,
+            payment_url=f"{settings.ZARINPAL_STARTPAY_URL}{authority}",
+        )
 
-        authority = data.get("authority")
-
-        if not isinstance(authority, str) or not authority:
-            raise GatewayError(
-                "Payment gateway did not return an authority."
-            )
-
-        return {
+    def verify(self, *, authority, amount):
+        payload = {
+            "merchant_id": settings.ZARINPAL_MERCHANT_ID,
             "authority": authority,
-            "payment_url": f"{self.start_pay_url}{authority}",
-        }
-
-    def verify(self, payment: Any) -> dict[str, str]:
-        """Verify a payment with ZarinPal."""
-        amount = self._validate_amount(int(payment.amount))
-
-        if not payment.authority:
-            raise ApplicationError(
-                "Payment has no gateway authority."
-            )
-
-        payload = {
-            "merchant_id": self.merchant_id,
-            "authority": payment.authority,
             "amount": amount,
         }
+        data, errors = self._post(settings.ZARINPAL_VERIFY_URL, payload)
 
-        result = self._post_json(self.verify_url, payload)
-        data = result.get("data")
+        # 100 = verified now, 101 = already verified (replay / retry).
+        if data.get("code") not in (100, 101) or not data.get("ref_id"):
+            code = errors.get("code") or data.get("code")
+            logger.warning("Zarinpal verify rejected: code=%s errors=%s", code, errors)
+            raise GatewayRejected("Gateway could not verify the payment.", code=code)
 
-        if not isinstance(data, dict):
-            raise GatewayError("Invalid payment verification response.")
-
-        code = data.get("code")
-
-        if code not in (100, 101):
-            raise GatewayError(
-                result.get("errors")
-                or data.get("message")
-                or "Payment verification failed."
-            )
-
-        ref_id = data.get("ref_id")
-
-        if ref_id is None:
-            raise GatewayError(
-                "Payment verification returned no reference ID."
-            )
-
-        return {"ref_id": str(ref_id)}
+        return GatewayVerifyResult(
+            ref_id=str(data["ref_id"]),
+            card_pan=str(data.get("card_pan") or ""),
+            fee=int(data.get("fee") or 0),
+        )

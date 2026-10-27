@@ -1,32 +1,18 @@
-
 from django.db import models
-from django.utils.translation import gettext_lazy as _
 
 
-class PaymentType(models.TextChoices):
-    """Supported payment purposes."""
-
-    ORDER = "ORDER", _("Order")
-    WALLET_CHARGE = "WALLET_CHARGE", _("Wallet charge")
+class PaymentPurpose(models.TextChoices):
+    WALLET_CHARGE = "WALLET_CHARGE", "Wallet Charge"
+    # ORDER = "ORDER", "Order"   # add when orders go through the gateway
 
 
 class PaymentStatus(models.TextChoices):
-    """Possible payment lifecycle statuses."""
-
-    PENDING = "PENDING", _("Pending")
-    SUCCESS = "SUCCESS", _("Success")
-    FAILED = "FAILED", _("Failed")
-    CANCELED = "CANCELED", _("Canceled")
-
-
-class EntryType(models.TextChoices):
-    """Financial entry categories associated with a transaction."""
-
-    PRINCIPAL = "PRINCIPAL", _("Principal")
-    COMMISSION = "COMMISSION", _("Commission")
+    PENDING = "PENDING", "Pending"
+    SUCCESS = "SUCCESS", "Success"
+    FAILED = "FAILED", "Failed"
+    CANCELED = "CANCELED", "Canceled"
+    EXPIRED = "EXPIRED", "Expired"
 
 
-class GatewayType(models.TextChoices):
-    """Supported payment gateways."""
-
-    ZARINPAL = "zarinpal", _("ZarinPal")
+class PaymentGatewayName(models.TextChoices):
+    ZARINPAL = "zarinpal", "ZarinPal"

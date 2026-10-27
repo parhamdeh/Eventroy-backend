@@ -16,5 +16,11 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'config.tasks.notify_customers',
         'schedule': 500,
         'args': ['Hello World'],
-    }
+    },
+
+    "expire-stale-payments": {
+            "task": "app.payments.tasks.expire_stale_payments",
+            "schedule": 600,  # seconds
+    },
 }
+
