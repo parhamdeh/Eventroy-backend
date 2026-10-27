@@ -1,6 +1,6 @@
 from django.urls import path
 
-from app.payment_gateway.api import PaymentVerifyAPI
+from app.payment_gateway.api.charge_api import PaymentVerifyAPI
 
 urlpatterns = [
     path(

@@ -1,20 +1,16 @@
-from app.users.models import Wallet, User, WalletTransaction
-from app.users.exceptions import InsufficientBalance, InvalidAmount
-# from app.wallets.notifications import notify_balance_changed
-
-
-
-
 def create_wallet(*, user: User):
     return Wallet.objects.create(
         user=user
     )
-
+from app.users.models import Wallet, User, WalletTransaction
 from functools import partial
 
-from django.db import transaction
+from django.db import models, transaction
+from django.db.models import Q, Sum, Value
+from django.db.models.functions import Coalesce
 
-
+from app.users.exceptions import InsufficientBalance, InvalidAmount
+from app.payment_gateway.notification import notify_balance_changed
 
 Kind = WalletTransaction.Kind
 Direction = WalletTransaction.Direction
@@ -124,3 +120,26 @@ def debit_wallet(
         idempotency_key=idempotency_key,
         description=description,
     )
+
+
+def calculate_ledger_balance(*, wallet_id) -> int:
+    """
+    Balance implied by the ledger: sum(credits) - sum(debits).
+
+    This is the source of truth. Wallet.balance is just a cached copy of
+    it, kept for fast reads and row-level locking.
+    """
+    zero = Value(0, output_field=models.BigIntegerField())
+    totals = WalletTransaction.objects.filter(wallet_id=wallet_id).aggregate(
+        credits=Coalesce(
+            Sum("amount", filter=Q(direction=Direction.CREDIT)),
+            zero,
+            output_field=models.BigIntegerField(),
+        ),
+        debits=Coalesce(
+            Sum("amount", filter=Q(direction=Direction.DEBIT)),
+            zero,
+            output_field=models.BigIntegerField(),
+        ),
+    )
+    return totals["credits"] - totals["debits"]

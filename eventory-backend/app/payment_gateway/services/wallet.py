@@ -1,5 +1,6 @@
 import logging
 from dataclasses import dataclass
+from functools import partial
 
 from django.conf import settings
 from django.db import transaction
@@ -12,6 +13,8 @@ from app.payment_gateway.exception import (
     PaymentNotFound,
 )
 from app.payment_gateway.gateways.registry import get_gateway
+from app.notification.enums import NotificationKind
+from app.notification.services import create_notification
 from app.payment_gateway.models import Payment
 from app.users.models import WalletTransaction
 from app.users.services import credit_wallet
@@ -89,6 +92,24 @@ _FULFILLERS = {
 }
 
 
+def _notify_payment_success(payment: Payment) -> None:
+    """Best-effort inbox entry; must never affect an already settled payment."""
+    try:
+        create_notification(
+            user_id=payment.user_id,
+            kind=NotificationKind.WALLET_CHARGED,
+            title="شارژ کیف پول موفق",
+            body=f"{payment.amount:,} تومان به کیف پول شما اضافه شد.",
+            data={
+                "payment_id": str(payment.pk),
+                "ref_id": payment.ref_id,
+                "amount": payment.amount,
+            },
+        )
+    except Exception:  # noqa: BLE001
+        logger.exception("Could not create notification for payment %s", payment.pk)
+
+
 # --------------------------------------------------------------------------
 # Verify (gateway callback)
 # --------------------------------------------------------------------------
@@ -143,6 +164,7 @@ def verify_payment(*, authority: str, callback_status: str) -> Payment:
 
         # Same transaction as the status change: either both happen or neither.
         _FULFILLERS[payment.purpose](payment)
+        transaction.on_commit(partial(_notify_payment_success, payment))
 
     logger.info("Payment %s verified (ref %s)", payment.pk, payment.ref_id)
     return payment
