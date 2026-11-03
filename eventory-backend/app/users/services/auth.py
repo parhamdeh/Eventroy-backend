@@ -186,7 +186,6 @@ def login_with_password(*, channel: str, identifier: str, password: str) -> dict
         raise _GENERIC_LOGIN_ERROR() from None
 
     user = user_get_for_login(channel=channel, identifier=identifier)
-    print("_______________________________", user)
     if user is None or not user.is_active:
         raise _GENERIC_LOGIN_ERROR()
 
