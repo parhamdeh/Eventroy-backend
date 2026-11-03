@@ -6,6 +6,7 @@ LOCAL_APPS = [
     "app.sms_gateway.apps.SmsGatewayConfig",
     "app.event.apps.EventConfig",
     "app.payment_gateway.apps.PaymentGatewayConfig",
+    "app.notification.apps.NotificationConfig",
 ]
 
 THIRD_PARTY_APPS = [
@@ -18,6 +19,8 @@ THIRD_PARTY_APPS = [
     "corsheaders",
     "drf_spectacular",
     "django_extensions",
+    "daphne",
+    "channels",
 ]
 
 INSTALLED_APPS = [

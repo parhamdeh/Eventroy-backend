@@ -13,7 +13,7 @@ ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['*'])
 
 
 
-
+ASGI_APPLICATION = "config.asgi.application"
 WSGI_APPLICATION = 'config.wsgi.application'
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
